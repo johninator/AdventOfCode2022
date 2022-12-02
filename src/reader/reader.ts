@@ -40,14 +40,28 @@ export class NumbersArrayReader extends Reader {
     }
 }
 
-export interface Strings {
-    strings: string[];
-}
+export type Strings = string[];
 
 export class StringsReader extends Reader {
     read(): Strings {
         const fileContent = readFileSync(this.filename, 'utf-8');
         const strings = fileContent.split(/\r?\n/).map((value: string) => { return value; });
-        return { strings };
+        return strings;
+    }
+}
+
+export type StringPairs = [string, string][];
+
+export class StringPairsReader extends Reader {
+    read(): StringPairs {
+
+        const fileContent = readFileSync(this.filename, 'utf-8');
+        const stringPairs: StringPairs = [];
+
+        fileContent.split(/\r?\n/).forEach((value: string) => { 
+            stringPairs.push([value[0], value[2]]);
+        });
+
+        return stringPairs;
     }
 }
