@@ -60,7 +60,4 @@ export class CrateReader extends Reader {
         });
         return [crateStack, procedures];
     }
-
-
-
 }
