@@ -96,6 +96,15 @@ export class DirectoryTree {
         });
     }
 
+    public getSizes(): number[] {
+        return this.findAllDirectories().map(dir => dir.sizeTotal);
+    }
+
+    public findDirSizeWithMinSize(minSize: number): number {
+        const dirs = this.findAllDirectories();
+        return this.findClosestNumber(dirs.map(dir => dir.sizeTotal), minSize);
+    }
+
     private findAllDirectories(): Directory[] {
         let dirCurrent: Directory | undefined = this.root;
         let dirsToBeSearched: Directory[] = [];
@@ -110,4 +119,18 @@ export class DirectoryTree {
         }
         return dirs;
     }
+
+    private findClosestNumber(numbers: number[], value: number): number {
+        let closestNumber: number = 0;
+        let closestDifference = Infinity;
+      
+        for (const number of numbers) {
+          if (number >= value && Math.abs(number - value) < closestDifference) {
+            closestNumber = number;
+            closestDifference = Math.abs(number - value);
+          }
+        }
+      
+        return closestNumber;
+      }
 }
