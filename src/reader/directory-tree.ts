@@ -3,8 +3,8 @@ export interface Directory {
     root: boolean;
     parent: Directory | undefined;
     children: Directory[];
-    sizeLocal: number;
     sizeTotal: number;
+    depth: number;
 }
 
 export class DirectoryTree {
@@ -13,15 +13,16 @@ export class DirectoryTree {
         root: true,
         parent: undefined,
         children: [],
-        sizeLocal: 0,
-        sizeTotal: 0
+        sizeTotal: 0,
+        depth: 0
     };
 
     private currentDir: Directory | undefined = undefined;
+    private currentDepth: number = 0;
 
     public changeDir(name: string): void {
         console.log('change dir to ' + name);
-        if (!this.currentDir) {
+        if (!this.currentDir || name === '/') {
             this.currentDir = this.root;
             return;
         }
@@ -30,40 +31,45 @@ export class DirectoryTree {
         );
         if (newDir) {
             this.currentDir = newDir;
+            this.currentDepth++;
             return;
         }
         throw new Error('directory not found');
     }
 
-    public changeDirToParent() {
+    public changeDirToParent(): void {
         if (this.currentDir && this.currentDir.parent) {
+            console.log('change to parent dir ' + this.currentDir.parent.name);
             this.currentDir = this.currentDir.parent;
+            this.currentDepth--;
         }
     }
 
     public addChild(childName: string): void {
         if (this.currentDir) {
+            console.log(
+                'add child ' + childName + ' to dir ' + this.currentDir.name
+            );
             this.currentDir.children.push({
                 name: childName,
                 root: false,
                 parent: this.currentDir,
                 children: [],
-                sizeLocal: 0,
-                sizeTotal: 0
+                sizeTotal: 0,
+                depth: this.currentDepth + 1
             });
         }
     }
 
     public setSize(size: number): void {
-        if (this.currentDir && this.currentDir.sizeLocal === 0) {
-            this.currentDir.sizeLocal = size;
-            this.currentDir.sizeTotal = size;
-            this.propagateSize(this.currentDir);
+        if (this.currentDir) {
+            this.currentDir.sizeTotal += size;
+            this.propagateSize(this.currentDir, size);
         }
     }
 
-    private propagateSize(dir: Directory): void {
-        const size = dir.sizeLocal;
+    private propagateSize(dir: Directory, size: number): void {
+        console.log('increment size of dir ' + dir.name + ' by ' + size);
         let dirCurrent = dir;
         while (dirCurrent.parent) {
             dirCurrent.parent.sizeTotal += size;
@@ -71,54 +77,37 @@ export class DirectoryTree {
         }
     }
 
-    // public search(nameFinal: string): Directory | undefined {
-    //     let dirCurrent: Directory = this.root;
-    //     let dirsToBeSearched = this.root.children;
-
-    //     while (dirCurrent.name !== nameFinal) {
-    //         dirsToBeSearched = [...dirsToBeSearched, ...dirCurrent.children];
-    //         let dirPopped = dirsToBeSearched.pop();
-    //         if (dirPopped) {
-    //             dirCurrent = dirPopped;
-    //             continue;
-    //         }
-    //         return undefined;
-    //     }
-    //     return dirCurrent;
-    // }
-
     public findDirsWithMaxSize(maxSize: number): number {
-        let dirCurrent: Directory = this.root;
-        let dirsToBeSearched = this.root.children;
-        let sumSizes = 0;
-
-        while (dirsToBeSearched.length > 0) {
-            const size  = dirCurrent.sizeTotal;
-            if (size <= maxSize) {
-                console.log('take ' + dirCurrent.name + ' with size ' + size)
-                sumSizes += size;
-            }
-            dirsToBeSearched = [...dirsToBeSearched, ...dirCurrent.children];
-            let dirPopped = dirsToBeSearched.pop();
-
-            if (dirPopped) {
-                dirCurrent = dirPopped;
-            }
-        }
+        const dirs = this.findAllDirectories();
+        const sumSizes = dirs.reduce<number>((total, dir) => {
+                if (dir.sizeTotal <= maxSize) {
+                    return total + dir.sizeTotal;
+                }
+                return total;
+        }, 0);
         return sumSizes;
     }
 
     public printSizes(): void {
-        let dirCurrent: Directory = this.root;
-        let dirsToBeSearched = this.root.children;
+        const dirs = this.findAllDirectories();
+        dirs.forEach(dir => {
+            const indent = "-".repeat(dir.depth);
+            console.log(indent + dir.name + ' has size ' + dir.sizeTotal);
+        });
+    }
 
-        while (dirsToBeSearched.length > 0) {
-            console.log(dirCurrent.name + ' has size ' + dirCurrent.sizeTotal);
+    private findAllDirectories(): Directory[] {
+        let dirCurrent: Directory | undefined = this.root;
+        let dirsToBeSearched: Directory[] = [];
+        const dirs: Directory[] = [];
+
+        while (dirCurrent) {
+            dirs.push(dirCurrent);
             dirsToBeSearched = [...dirsToBeSearched, ...dirCurrent.children];
-            let dirPopped = dirsToBeSearched.pop();
-            if (dirPopped) {
-                dirCurrent = dirPopped;
-            }
+
+            const dirPopped = dirsToBeSearched.pop();
+            dirCurrent = dirPopped;
         }
+        return dirs;
     }
 }

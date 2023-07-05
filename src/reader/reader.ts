@@ -29,7 +29,7 @@ export class NumbersArrayReader extends Reader {
 
         fileContent.split(/\r?\n/).forEach((value: string) => { 
             if (value === "") {
-                numbersArray.push([...numbers]);
+                numbersArray.push(numbers);
                 numbers.splice(0);
                 return;
             }
@@ -39,6 +39,7 @@ export class NumbersArrayReader extends Reader {
         return numbersArray;
     }
 }
+
 
 export type Strings = string[];
 
