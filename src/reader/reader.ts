@@ -24,8 +24,8 @@ export type NumbersArray = number[][];
 export class NumbersArrayReader extends Reader {
     read(): NumbersArray {
         const fileContent = super.readBase();
-        let numbersArray: NumbersArray = [];
-        let numbers: Numbers = [];
+        const numbersArray: NumbersArray = [];
+        const numbers: Numbers = [];
 
         fileContent.split(/\r?\n/).forEach((value: string) => { 
             if (value === "") {
@@ -36,6 +36,16 @@ export class NumbersArrayReader extends Reader {
             numbers.push(parseInt(value));
         });
         
+        return numbersArray;
+    }
+    readAllLines(): NumbersArray {
+        const fileContent = super.readBase();
+        let numbersArray: NumbersArray = [];
+
+        fileContent.split(/\r?\n/).forEach((value: string) => {
+            numbersArray.push([...value].map((char: string) => parseInt(char)));
+            return;
+        });
         return numbersArray;
     }
 }
